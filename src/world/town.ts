@@ -488,14 +488,14 @@ export class Town {
     for (let i = 0; i < 9; i++) K.bush(-28 + i * 2.6, 0.2, 0.55); for (let i = 0; i < 6; i++) K.bush(20.5, 3 + i * 1.8, 0.5, '#467a3d');
     // the woods
     const F = rng(4711);
-    for (let i = 0; i < 620; i++) {
+    for (let i = 0; i < 330; i++) {
       const x = -96 + F() * 44, z = -62 + F() * 124;
       const t = this.tileAt(x, z);
       if (t !== T.forest || this.isWater(x, z) || Math.hypot(x + 80, z + 18) < 8) continue;
       let nearPath = false;
-      for (const [dx, dz] of [[1.5, 0], [-1.5, 0], [0, 1.5], [0, -1.5]]) { const tt = this.tileAt(x + dx, z + dz); if (tt === T.path || tt === T.dirt || this.isWater(x + dx, z + dz)) nearPath = true; }
+      for (const [dx, dz] of [[1.5, 0], [-1.5, 0], [0, 1.5], [0, -1.5], [3.2, 0], [-3.2, 0], [0, 3.2], [0, -3.2], [2.2, 2.2], [-2.2, 2.2], [2.2, -2.2], [-2.2, -2.2], [0, -5], [0, -6.5]]) { const tt = this.tileAt(x + dx, z + dz); if (tt === T.path || tt === T.dirt || this.isWater(x + dx, z + dz)) nearPath = true; }
       if (nearPath) continue;
-      K.tree(x, z, 0.9 + F() * 0.9, F() < 0.72 ? 1 : F() < 0.6 ? 0 : 2, x > -94 && x < -53);
+      K.tree(x, z, 0.85 + F() * 0.6, F() < 0.72 ? 1 : F() < 0.6 ? 0 : 2, x > -94 && x < -53);
     }
     for (let i = 0; i < 220; i++) { const a = F() * 6.28, r = 20 + F() * 70; const x = -150 + Math.cos(a) * r * 0.7, z = Math.sin(a) * r * 1.6; if (x < -97) K.tree(x, z, 1.3 + F() * 1.4, 1, false, F() * 2); }
     for (let i = 0; i < 90; i++) { const x = 66 + F() * 40, z = -30 + F() * 110; K.tree(x, z, 1.1 + F(), F() < 0.5 ? 1 : 0, false); }

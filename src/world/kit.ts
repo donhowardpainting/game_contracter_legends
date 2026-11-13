@@ -11,7 +11,7 @@ export const uWind = { value: 1 };
  *  (the depth-of-field pass then melts the stipple into soft translucency). */
 export const uCut = { value: new THREE.Vector4(0, 0, 0, 0) };     // focus xyz, enabled
 export const uCutScr = { value: new THREE.Vector3(0, 0, 200) };   // player screen px, porthole radius px
-export function cutaway(sh: any) {
+export function cutaway(sh: any, amt = 0.66) {
   sh.uniforms.uCut = uCut; sh.uniforms.uCutScr = uCutScr;
   sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vCutW;')
     .replace('#include <project_vertex>', `#include <project_vertex>
@@ -29,7 +29,7 @@ export function cutaway(sh: any) {
         vec2 d = (gl_FragCoord.xy - uCutScr.xy) / uCutScr.z; d.y *= 0.8;
         float hole = 1.0 - smoothstep(0.7, 1.15, length(d));
         float high = smoothstep(2.3, 3.4, vCutW.y) * smoothstep(2.0, 5.0, vCutW.z - uCut.z);
-        if (b < max(hole * 1.1, high * 0.66)) discard;
+        if (b < max(hole * 1.1, high * ${amt.toFixed(2)})) discard;
       }`);
 }
 (THREE.MeshLambertMaterial.prototype as any).onBeforeCompile = function (sh: any) { cutaway(sh); };
@@ -600,7 +600,7 @@ export function swayMat(t: THREE.Texture, amount: number, opts: THREE.MeshLamber
   if (m) return m;
   m = new THREE.MeshLambertMaterial({ map: t, flatShading: !opts.alphaTest, ...opts });
   m.onBeforeCompile = (sh) => {
-    cutaway(sh); sh.uniforms.uTime = uTime; sh.uniforms.uWind = uWind;
+    cutaway(sh, 1.2); sh.uniforms.uTime = uTime; sh.uniforms.uWind = uWind;
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uTime; uniform float uWind;')
       .replace('#include <begin_vertex>', `#include <begin_vertex>
         #ifdef USE_INSTANCING
