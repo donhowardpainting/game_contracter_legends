@@ -511,7 +511,7 @@ export function groundAtlas(): THREE.CanvasTexture {
     o(0, 0, base, 16, 16);
     for (let k = 0; k < n; k++) o(Math.floor(R() * 16), Math.floor(R() * 16), shade(base, R() < 0.5 ? lo : hi), 1 + Math.floor(R() * w), 1);
   };
-  const G = '#69a552', Gd = '#538c45', Gl = '#84bd5e', Gy = '#9bc965';
+  const G = '#6a9e58', Gd = '#55874b', Gl = '#80b464', Gy = '#98c06c';
   const grass = (o: any, extra: number) => {
     o(0, 0, G, 16, 16);
     for (let k = 0; k < 16 + extra; k++) {

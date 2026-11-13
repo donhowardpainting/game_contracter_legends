@@ -7,6 +7,32 @@ import type { Physics } from '../engine/physics';
 export const TM = 4; // metres covered by one 64px texture repeat
 export const uTime = { value: 0 };
 export const uWind = { value: 1 };
+/** Foreground cutaway: geometry standing between the camera and the player is stippled away
+ *  (the depth-of-field pass then melts the stipple into soft translucency). */
+export const uCut = { value: new THREE.Vector4(0, 0, 0, 0) };     // focus xyz, enabled
+export const uCutScr = { value: new THREE.Vector3(0, 0, 200) };   // player screen px, porthole radius px
+export function cutaway(sh: any) {
+  sh.uniforms.uCut = uCut; sh.uniforms.uCutScr = uCutScr;
+  sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vCutW;')
+    .replace('#include <project_vertex>', `#include <project_vertex>
+      #ifdef USE_INSTANCING
+        vCutW = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;
+      #else
+        vCutW = (modelMatrix * vec4(transformed, 1.0)).xyz;
+      #endif`);
+  sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
+      uniform vec4 uCut; uniform vec3 uCutScr; varying vec3 vCutW;
+      float cutBayer(vec2 p){ vec2 q = floor(mod(p, 4.0)); const mat4 M = mat4(0.,8.,2.,10.,12.,4.,14.,6.,3.,11.,1.,9.,15.,7.,13.,5.); return (M[int(q.x)][int(q.y)] + 0.5) / 16.0; }`)
+    .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
+      if (uCut.w > 0.5 && vCutW.z > uCut.z + 2.0 && vCutW.y > 0.3) {
+        float b = cutBayer(gl_FragCoord.xy / 2.0);
+        vec2 d = (gl_FragCoord.xy - uCutScr.xy) / uCutScr.z; d.y *= 0.8;
+        float hole = 1.0 - smoothstep(0.7, 1.15, length(d));
+        float high = smoothstep(2.3, 3.4, vCutW.y) * smoothstep(2.0, 5.0, vCutW.z - uCut.z);
+        if (b < max(hole * 1.1, high * 0.66)) discard;
+      }`);
+}
+(THREE.MeshLambertMaterial.prototype as any).onBeforeCompile = function (sh: any) { cutaway(sh); };
 
 const matCache = new Map<string, THREE.MeshLambertMaterial>();
 export function mat(t: THREE.Texture, opts: THREE.MeshLambertMaterialParameters = {}, key = ''): THREE.MeshLambertMaterial {
@@ -239,8 +265,8 @@ export class Kit {
       P.solid(X + s.w / 2 - t / 2, Z, t, s.d, h + base);
       P.solid(X - s.w / 2 + lw / 2, Z + fz - t / 2, lw, t, h + base);
       P.solid(X + s.w / 2 - rw / 2, Z + fz - t / 2, rw, t, h + base);
-      const light = new THREE.PointLight(0xffc98a, 0, 18, 1.4);
-      light.position.set(0, base + h - 0.4, 0);
+      const light = new THREE.PointLight(0xffc98a, 0, 26, 1.1);
+      light.position.set(0, base + h + 1.6, 1);
       g.add(light);
       this.interiors.push({ x0: s.x - s.w / 2, x1: s.x + s.w / 2, z0: s.z - fz, z1: s.z + fz, hide: [front, top], light, name: s.name ?? '' });
     } else {
@@ -322,7 +348,14 @@ export class Kit {
       const aw = this.roof(front, 'shed', s.w * 0.86, 1.4, 0.5, awningTex(s.awning), wallT, shade(s.awning, 0.7), 0);
       aw.position.set(0, base + 2.45, fz + 0.7);
     }
-    if (s.sign) this.sign(front, s.sign.text, s.sign.x ?? 0, s.sign.y ?? base + h - 0.55, fz + 0.14, { bg: s.sign.bg, fg: s.sign.fg, weathered: dead, w: s.sign.w });
+    if (s.sign) {
+      const onWall = s.roof === 'gableZ';
+      const lines = s.sign.text.split('\n'), pxW = Math.max(...lines.map((l) => l.length)) * 7 + 12, pxH = lines.length * 9 + 9;
+      const sw = s.sign.w ?? Math.min(s.w * 0.8, (pxW / 16) * 1.25), sh = (sw * pxH) / pxW;
+      const sy = onWall ? base + h - 0.5 : base + h + sh / 2 + (s.roof === 'flat' ? 0.5 : 0.02), sz = onWall ? fz + 0.14 : s.roof === 'flat' ? fz + 0.2 : fz + (s.porch && (s.porch.roofed !== false) && Math.abs((s.porch.x ?? 0) - (s.sign.x ?? 0)) < (s.porch.w ?? s.w) / 2 ? (s.porch.d ?? 2.2) + 0.25 : (s.over ?? 0.45) + 0.06);
+      const sgy = s.porch && sz > fz + 1 ? base + 2.5 + sh / 2 + 0.05 : sy;
+      this.sign(front, s.sign.text, s.sign.x ?? 0, sgy, sz, { bg: s.sign.bg, fg: s.sign.fg, weathered: dead, w: sw });
+    }
     if (dead) {
       // ivy creeping up the facade
       const R = rng(Math.floor(s.x * 7 + s.z));
@@ -470,7 +503,8 @@ export class Kit {
       a.translate(0, 0.5, 0); b.translate(0, 0.5, 0); b.rotateY(Math.PI / 2);
       const g = new THREE.BufferGeometry();
       const pos = [...(a.attributes.position.array as any), ...(b.attributes.position.array as any)], uv = [...(a.attributes.uv.array as any), ...(b.attributes.uv.array as any)];
-      const idx = [...(a.index!.array as any), ...[...(b.index!.array as any)].map((i: number) => i + 4)];
+      const i0 = [...(a.index!.array as any), ...[...(b.index!.array as any)].map((i: number) => i + 4)];
+      const idx = [...i0]; for (let i = 0; i < i0.length; i += 3) idx.push(i0[i], i0[i + 2], i0[i + 1]);
       g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
       g.setAttribute('normal', new THREE.Float32BufferAttribute(new Array(24).fill(0).map((_, i) => (i % 3 === 1 ? 1 : 0)), 3));
       g.setIndex(idx);
@@ -479,7 +513,7 @@ export class Kit {
     const kinds = [tuftTex(0), tuftTex(1), tuftTex(2), tuftTex(3)];
     kinds.forEach((t, k) => {
       const list = this.tufts.filter((u) => u.kind === k).map((u) => ({ m: M(u.x, u.y, u.z, u.s * (k === 2 ? 1.2 : 0.8), u.s * (k === 2 ? 1.9 : 0.8), u.s * 0.8, R() * 3) }));
-      inst(cross, swayMat(t, 0.08, { alphaTest: 0.5, side: THREE.DoubleSide }), list, false);
+      inst(cross, swayMat(t, 0.08, { alphaTest: 0.5 }), list, false);
     });
   }
 }
@@ -566,7 +600,7 @@ export function swayMat(t: THREE.Texture, amount: number, opts: THREE.MeshLamber
   if (m) return m;
   m = new THREE.MeshLambertMaterial({ map: t, flatShading: !opts.alphaTest, ...opts });
   m.onBeforeCompile = (sh) => {
-    sh.uniforms.uTime = uTime; sh.uniforms.uWind = uWind;
+    cutaway(sh); sh.uniforms.uTime = uTime; sh.uniforms.uWind = uWind;
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uTime; uniform float uWind;')
       .replace('#include <begin_vertex>', `#include <begin_vertex>
         #ifdef USE_INSTANCING

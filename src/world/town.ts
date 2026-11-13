@@ -415,9 +415,9 @@ export class Town {
       K.box(g, PX.concrete(), 0, 0, 2.9, 1.8, 0.5, 0.9); K.box(g, PX.concrete(), 0, 0.5, 2.6, 1.8, 0.5, 0.5);
       P.solid(58, -51, 5, 5, 12);
       const beam = new THREE.Group(); beam.position.set(58, 12.2, -51); grp.add(beam);
-      for (const s of [1, -1]) { const b = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 5, 70, 10, 1, true), new THREE.MeshBasicMaterial({ color: 0xfff0c0, transparent: true, opacity: 0.13, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false })); b.rotation.z = Math.PI / 2; b.position.x = s * 36; b.scale.x = s; beam.add(b); }
+      for (const s of [1, -1]) { const b = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 3.2, 70, 10, 1, true), new THREE.MeshBasicMaterial({ color: 0xfff0c0, transparent: true, opacity: 0.055, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false })); b.rotation.z = Math.PI / 2; b.position.x = s * 36; b.scale.x = s; beam.add(b); }
       beam.visible = false; beam.userData.lit = false; G.sky.beam = beam;
-      const lg = K.glow(58, 12.2, -51, 9, 0xfff0c0); lg.visible = false;
+      const lg = K.glow(58, 12.2, -51, 6, 0xfff0c0); lg.visible = false;
       G.sceneFlags.lighthouse = { lampM, beam, glow: lg };
       G.addTask(new PaintTask(G, 'lighthouse_paint', 'Repaint the lighthouse', [{ x: 58, y: 1 + 3.5, z: -48.96, w: 4, h: 7 }], { color: 0 }));
       G.addInteract({ id: 'lamp', x: 58, z: -47.4, r: 2, label: 'Climb up and relight the lamp', when: () => !!G.S.flags.can_light && !G.S.flags.lit, act: () => G.story('light') });

@@ -13,7 +13,7 @@ export class Player {
   bb: Billboard;
   body: RAPIER.RigidBody; col: RAPIER.Collider; ctl: RAPIER.KinematicCharacterController;
   driving: Vehicle | null = null;
-  zoom = 25;
+  zoom = 30;
   private workT = 0;
   private stepT = 0;
   private vy = 0;

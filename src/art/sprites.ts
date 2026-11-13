@@ -152,7 +152,7 @@ function paintFrame(spec: CharSpec, dir: Dir, col: number): (string | null)[] {
     } else { R(hx + 6, hTop + 3, 4, 3, hair); P(hx + 5, hTop + 5, skinD); }
     if (spec.hairStyle === 'long') R(hx + 6, hTop + 8, 4, 6, hair), R(hx + 9, hTop + 8, 1, 6, hairD);
     if (spec.hairStyle === 'pony') { R(hx + hw, hTop + 3, 2, 2, hair); R(hx + hw + 1, hTop + 5, 2, 5, hair); P(hx + hw, hTop + 3, acc); }
-    if (spec.hairStyle === 'bun') R(hx + hw - 1, hTop - 1, 3, 3, hair), P(hx + hw + 1, hTop + 1, hairD);
+    if (spec.hairStyle === 'bun') R(hx + hw - 1, hTop + 2, 3, 3, hair), P(hx + hw + 1, hTop + 4, hairD);
     if (spec.hairStyle === 'curly') { R(hx + 1, hTop - 1, hw - 2, 1, hair); R(hx + hw, hTop + 1, 1, 7, hairD); }
     if (spec.beard) { R(hx, hTop + 7, 6, 3, spec.beard); P(hx, hTop + 9, null); R(hx - 1, hTop + 8, 1, 1, spec.beard); }
     if (spec.glasses) { R(hx + 1, hTop + 3, 3, 1, EYE); P(hx + 1, hTop + 4, '#bfe3ee'); R(hx + 4, hTop + 4, 3, 1, EYE); }
@@ -171,7 +171,7 @@ function paintFrame(spec: CharSpec, dir: Dir, col: number): (string | null)[] {
     if (spec.hairStyle === 'bun') { R(hx + 3, hTop - 2, 4, 2, hair); R(hx + 4, hTop - 2, 2, 1, hairL); }
     if (spec.hairStyle === 'curly') { R(hx - 1, hTop + 1, 1, 6, hair); R(hx + hw, hTop + 1, 1, 6, hairD); R(hx + 1, hTop - 1, hw - 2, 1, hair); P(hx + 3, hTop + 3, hair); P(hx + 5, hTop + 4, hair); }
     if (spec.beard) { R(hx + 1, hTop + 7, hw - 2, 3, spec.beard); R(hx, hTop + 6, 1, 3, spec.beard); R(hx + hw - 1, hTop + 6, 1, 3, shade(spec.beard, 0.8)); R(hx + 4, hTop + 8, 2, 1, shade(spec.beard, 0.6)); R(hx + 2, hTop + 10, hw - 4, 1, spec.beard); }
-    if (spec.glasses) { R(hx + 1, hTop + 4, 8, 1, EYE); R(hx + 1, hTop + 5, 1, 2, EYE); R(hx + 4, hTop + 5, 2, 1, EYE); R(hx + 8, hTop + 5, 1, 2, EYE); P(hx + 3, hTop + 5, '#bfe3ee'); P(hx + 6, hTop + 5, '#bfe3ee'); }
+    if (spec.glasses) { R(hx + 1, hTop + 4, 8, 1, '#4a4458'); P(hx + 1, hTop + 5, '#4a4458'); P(hx + 8, hTop + 5, '#4a4458'); P(hx + 3, hTop + 5, '#cfeaf2'); P(hx + 6, hTop + 5, '#cfeaf2'); P(hx + 3, hTop + 6, '#a9cbd6'); P(hx + 6, hTop + 6, '#a9cbd6'); }
   }
   // ── hats ──
   if (spec.hat) {
@@ -316,6 +316,7 @@ export class Billboard {
     this.tex.repeat.set(1 / COLS, 1 / ROWS);
     this.tex.needsUpdate = true;
     const mat = new THREE.MeshLambertMaterial({ map: this.tex, alphaTest: 0.5, side: THREE.DoubleSide });
+    mat.onBeforeCompile = () => {};
     this.mesh = new THREE.Mesh(planeGeo, mat);
     this.mesh.castShadow = true;
     this.mesh.customDepthMaterial = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: this.tex, alphaTest: 0.5 });

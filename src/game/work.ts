@@ -85,10 +85,10 @@ export class PaintTask extends Task {
         for (let y = 0; y < s.H; y++) for (let x = 0; x < s.W; x++) {
           const fx = x / 6, fy = y / 6, ix = Math.floor(fx), iy = Math.floor(fy), tx = fx - ix, ty = fy - iy;
           const v = (n[iy * gw + ix] * (1 - tx) + n[iy * gw + ix + 1] * tx) * (1 - ty) + (n[(iy + 1) * gw + ix] * (1 - tx) + n[(iy + 1) * gw + ix + 1] * tx) * ty;
-          if (v + (y / s.H) * 0.25 > 0.42 || R() < 0.08) {
+          if (v + (y / s.H) * 0.3 > 0.56 || R() < 0.05) {
             s.st[y * s.W + x] = 1; s.grime++;
             s.ctx.fillStyle = v > 0.62 ? '#3f4a35' : R() < 0.5 ? '#55533f' : '#4a5440';
-            s.ctx.globalAlpha = 0.78 + R() * 0.2;
+            s.ctx.globalAlpha = 0.6 + R() * 0.25;
             s.ctx.fillRect(x, y, 1, 1);
           }
         }
@@ -160,13 +160,13 @@ export class PaintTask extends Task {
     if (this.o.color !== undefined && S.paintColor !== this.o.color) { if (clicked) G.toast(`The client asked for ${PAINTS[this.o.color].name}. Press [C] to change colour.`, 'warn'); return false; }
     if (S.inv.paint <= 0.001) { if (clicked) G.toast('Out of paint — Brannigan Lumber sells it by the gallon.', 'warn'); return false; }
     if (!G.materialsNear()) { if (clicked) G.toast('Your paint is in the truck. Bring it closer.', 'warn'); return false; }
-    const r = S.tools.sprayer ? 13 : S.tools.roller ? (G.skillLv('painting') >= 2 ? 9 : 7) : 3.2;
+    const r = S.tools.sprayer ? 14 : (S.tools.roller ? 9.5 : 6.5) + (G.skillLv('painting') >= 2 ? 2 : 0);
     let n = 0;
     for (let k = 1; k <= steps; k++) n += this.stamp(s, from.x + ((x - from.x) * k) / steps, from.y + ((y - from.y) * k) / steps, r, 'paint', PAINTS[S.paintColor].c);
     G.snd.setLoop('paint', true, S.tools.sprayer ? 0.3 : 0.14);
     if (n) {
       this.colorUsed = S.paintColor;
-      S.inv.paint = Math.max(0, S.inv.paint - n / (2600 * (G.skillLv('painting') >= 4 ? 1.4 : 1)));
+      S.inv.paint = Math.max(0, S.inv.paint - n / (5200 * (G.skillLv('painting') >= 4 ? 1.4 : 1)));
       G.addXp('painting', n / 260);
       if (Math.random() < 0.3) G.fx.burst(h.point, 1, { colors: [PAINTS[S.paintColor].c], speed: 0.6, up: 0.2, life: 0.6, size: 0.07 });
       let p = 0, t = 0;
@@ -489,7 +489,7 @@ export class SawTask extends Task {
   }
   /** called by the saw UI after each cut; err is distance from the pencil line in 0..1 board units */
   result(err: number) {
-    const G = this.G, tol = G.S.tools.circsaw ? 0.035 : 0.022;
+    const G = this.G, tol = G.S.tools.circsaw ? 0.07 : 0.045;
     G.S.inv.lumber--;
     G.snd.sfx('cut');
     if (err <= tol * (G.skillLv('carpentry') >= 5 ? 1.5 : 1)) { this.cut++; G.addXp('carpentry', err < tol / 3 ? 8 : 5); if (this.cut >= this.count) this.complete(); return err < tol / 3 ? 'perfect' : 'good'; }
@@ -605,7 +605,7 @@ export class Work {
         this.reticle.visible = true;
         this.reticle.position.copy(h.point);
         this.reticle.quaternion.copy(G.gfx.camera.quaternion);
-        const s = h.task.kind === 'paint' ? (G.S.tool === 'washer' ? 1.2 : G.S.tools.sprayer ? 1.7 : G.S.tools.roller ? 1 : 0.5) : 0.7;
+        const s = h.task.kind === 'paint' ? (G.S.tool === 'washer' ? 1.2 : G.S.tools.sprayer ? 1.8 : G.S.tools.roller ? 1.3 : 0.9) : 0.7;
         this.reticle.scale.setScalar(s);
         (this.reticle.material as THREE.MeshBasicMaterial).color.setHex(reach ? 0xfff2b0 : 0xff6a5a);
       }

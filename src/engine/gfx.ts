@@ -111,8 +111,8 @@ export class Gfx {
   // camera rig
   target = new THREE.Vector3();
   goal = new THREE.Vector3();
-  dist = 25; goalDist = 25;
-  pitch = 0.6; goalPitch = 0.6;
+  dist = 30; goalDist = 30;
+  pitch = 0.56; goalPitch = 0.56;
   yaw = 0; goalYaw = 0;
   shake = 0;
   cine: { pos: THREE.Vector3; look: THREE.Vector3 } | null = null;
@@ -121,7 +121,7 @@ export class Gfx {
   constructor(canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.renderer.toneMapping = THREE.NoToneMapping;
     this.camera = new THREE.PerspectiveCamera(30, 1, 1, 420);
     const w = window.innerWidth, h = window.innerHeight;

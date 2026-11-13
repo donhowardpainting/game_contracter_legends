@@ -88,7 +88,7 @@ export class UI {
   // ───────────── HUD ─────────────
   refreshHotbar() {
     const S = this.G.S, T = S.tools;
-    const slots: [ToolId, string, boolean][] = [['hands', 'hands', true], ['hammer', T.nailgun ? 'nailgun' : 'hammer', true], ['paint', T.sprayer ? 'sprayer' : T.roller ? 'roller' : 'brush', !!T.paint], ['sledge', 'sledge', !!T.sledge], ['saw', T.circsaw ? 'circsaw' : 'handsaw', !!T.saw], ['washer', 'washer', !!T.washer]];
+    const slots: [ToolId, string, boolean][] = [['hands', 'hands', true], ['hammer', T.nailgun ? 'nailgun' : 'hammer', true], ['paint', T.sprayer ? 'sprayer' : 'roller', !!T.paint], ['sledge', 'sledge', !!T.sledge], ['saw', T.circsaw ? 'circsaw' : 'handsaw', !!T.saw], ['washer', 'washer', !!T.washer]];
     this.hotbar.innerHTML = slots.map(([id, icn, own], i) => `<div class="slot ${S.tool === id ? 'on' : ''} ${own ? '' : 'locked'}" data-tool="${id}"><span class="key">${i + 1}</span>${ic(icn, 48)}</div>`).join('') + `<div id="swatch" style="background:${PAINTS[S.paintColor].c}" title="${PAINTS[S.paintColor].name}"><span class="key">C</span></div>`;
     this.hotbar.classList.toggle('hidden', !!this.G.player.driving);
   }
@@ -341,7 +341,7 @@ export class UI {
     const G = this.G, S = G.S, T = S.tools;
     const tools: [string, string, string, boolean][] = [
       ['hammer', 'Framing Hammer', "Walt's. The handle is worn to your grip already.", true], ['nailgun', 'Nail Gun', 'One shot per nail. Hold to rapid-fire.', !!T.nailgun],
-      ['brush', 'Sash Brush', 'Slow, but it gets anywhere.', !!T.paint], ['roller', 'Paint Roller', 'Wide, fast coverage.', !!T.roller], ['sprayer', 'Airless Sprayer', 'Huge soft fan of paint.', !!T.sprayer],
+      ['roller', T.roller ? '18-inch Roller' : "Walt's Roller", 'Hold the mouse and roll it on.', !!T.paint], ['sprayer', 'Airless Sprayer', 'Huge soft fan of paint.', !!T.sprayer],
       ['sledge', T.heavySledge ? 'Heavy Sledge' : "Walt's Sledge", 'For deliberate un-building.', !!T.sledge], ['handsaw', 'Hand Saw', 'Honest and slow.', !!T.saw], ['circsaw', 'Circular Saw', 'Fast, forgiving cuts.', !!T.circsaw],
       ['washer', 'Pressure Washer', 'Grime goes; paint stays.', !!T.washer], ['truck', "Walt's Pickup" + (T.tuneup ? ' (tuned)' : ''), 'Carries your lumber and paint. Park it near the job.', true], ['skid', 'Skid Steer', 'Pushes rubble aside. Needs Engineering 2.', !!T.skid],
     ];
@@ -410,7 +410,7 @@ export class UI {
     const el = this.openWin('saw', 'CUT TO THE LINE', `<p class="hint">Stop the blade on the pencil line — <span class="kbd">SPACE</span> or click. Each cut uses one board. A bad cut is firewood.</p><canvas id="sawc" width="300" height="84" style="width:100%"></canvas><p class="hint" id="sawmsg" style="text-align:center;min-height:22px"></p>`, false);
     const cv = el.querySelector('canvas')!, g = cv.getContext('2d')!, msg = el.querySelector('#sawmsg')!;
     let mark = 0.35 + Math.random() * 0.5, x = 0, dir = 1, wait = 0, cuts: number[] = [];
-    const speed = G.S.tools.circsaw ? 0.55 : 0.8;
+    const speed = G.S.tools.circsaw ? 0.5 : 0.62;
     const cut = () => {
       if (wait > 0) return;
       if (G.S.inv.lumber < 1) { this.toast('Out of lumber.', 'warn'); this.closeWin(); return; }
@@ -495,14 +495,14 @@ export class UI {
           if (!st[i]) { g.fillStyle = '#9a927c'; g.fillText('?', ax + pw / 2, 84); }
           if (hint && !st[i]) { g.fillStyle = '#6fc7b4'; g.fillText(i < N / 2 ? '/' : '\\', ax + pw / 2, 96); }
         }
-        g.fillStyle = ink; g.fillText('SUPPORT', 22, 108); g.fillText('SUPPORT', 298, 108);
+        g.fillStyle = '#f4ead0'; g.fillText('BANK', 21, 126); g.fillText('BANK', 299, 126);
         if (tp >= 0) { const lx = x0 + tp * 240; g.fillStyle = '#3f8f8c'; g.fillRect(lx - 9, 34, 18, 10); g.fillStyle = '#141a2e'; g.fillRect(lx - 7, 44, 4, 4); g.fillRect(lx + 3, 44, 4, 4); }
       } else {
         const gy = 40, m = 16, tp = test >= 0 ? Math.min(1, test / 1.6) : 0;
         g.fillStyle = '#9fd0e6'; g.fillRect(0, gy - 14 - Math.sin(tp * 12) * 5 * (test >= 0 ? 1 : 0), 320, 14 + 6);
         g.fillStyle = '#7a8a94'; g.fillRect(0, gy + 6 * m, 320, 170);
         for (let i = 0; i < N; i++) { const fx = x0 + i * pw; g.fillStyle = '#a58a62'; g.fillRect(fx, gy, pw, fill[i] * m); g.fillStyle = '#8a7350'; for (let k = 0; k < 6; k++) g.fillRect(fx + ((k * 13) % (pw - 3)), gy + ((k * 7) % Math.max(4, fill[i] * m - 2)), 3, 1); g.fillStyle = '#7a8a94'; g.fillRect(fx, gy + fill[i] * m, pw, (6 - fill[i]) * m); }
-        g.fillStyle = '#e9e0c6'; g.fillText('SOFT FILL', 286, gy + 12); g.fillStyle = '#e9e0c6'; g.fillText('FIRM CLAY', 286, gy + 6 * m - 5);
+        g.fillStyle = ink; g.fillText('FILL', 20, gy + 14); g.fillText('CLAY', 20, gy + 5 * m);
         for (let i = 0; i < N; i++) {
           const cx = x0 + i * pw + pw / 2, failing = test >= 0 && bad.includes(i) && tp > 0.3, lean = failing ? (tp - 0.3) * 14 : 0;
           line(cx + lean, gy - 12, cx, gy + st[i] * m, bad.includes(i) && test < 0 && msg.textContent ? red : '#5d4a3a', 7);

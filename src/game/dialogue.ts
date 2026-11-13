@@ -55,8 +55,8 @@ const TALK: Record<string, (G: Game) => Script> = {
       "gus: Depends who you ask. Ask me, he's the only man who told the truth around here. Ask anybody else… well. You'll hear.",
       "gus: Talk's cheap. Lumber ain't — but today it is. I dropped some boards by your wall. That rack fell over the winter he passed. Put it back up.",
       'gus: Hammer is [2]. Click the ghost boards to set them, then hit every glowing nail until it sits flush.',
-      "gus: Then give that tired front wall a coat. Three gallons of tintable and Walt's old brush are on the bench — [3] for the brush, [C] picks the colour.",
-    ], () => { G.S.inv.lumber += 6; G.S.inv.paint += 3; G.S.tools.paint = true; G.truck.refresh(); G.ui.refreshHotbar(); C.advance(G, 'mq1'); });
+      "gus: Then give that tired front wall a coat. Four gallons of tintable and Walt's old roller are on the bench — [3] for the roller, [C] picks the colour.",
+    ], () => { G.S.inv.lumber += 6; G.S.inv.paint += 4; G.S.tools.paint = true; G.truck.refresh(); G.ui.refreshHotbar(); C.advance(G, 'mq1'); });
     if (s === 1 || s === 2) return S([s === 1 ? "gus: Rack first. Posts, then rails. Drive the nails home — a proud nail is a liar." : 'gus: Now the wall. A shop that looks dead stays dead. Hold the mouse down and roll.']);
     if (s === 3) return S([
       'gus: Huh. (He looks at the wall a long moment.)',
@@ -196,7 +196,7 @@ const TALK: Record<string, (G: Game) => Script> = {
       { t: "I don't cover cracks. I fix them, or I leave them alone.", go: () => S(["vale: That's a shame. Your uncle said something very like it once.", 'vale: Do look where it got him.'], () => { G.flag('vale_deal', 'refuse'); G.addRep(3); C.advance(G, 'mq6'); }) },
     ]);
     if (s === 4 && G.S.flags.vale_deal === 'cosmetic') return S([
-      "vale: Flawless. You can't see a thing. Nine hundred, as promised — and do keep the brush.",
+      "vale: Flawless. You can't see a thing. Nine hundred, as promised — and do keep the roller.",
       '(As you count it, you notice Nell across the plaza. She has seen the wall. She does not wave.)',
     ], () => { G.earn(900, "Vale's job"); G.addRep(-6); G.trust('nell', -2); G.flag('sold_out'); C.advance(G, 'mq6'); C.startQuest(G, 'mq7'); });
     if (s === 4 && G.S.flags.vale_deal === 'right') return S([
@@ -407,7 +407,6 @@ export function story(G: Game, id: string) {
 }
 
 export function intro(G: Game) {
-  G.gfx.grade.uniforms.fade.value = 1;
   G.sky.time = 6.1; G.sky.weather = 'clear';
   applyHolds(G);
   G.ui.fade(0);
@@ -464,7 +463,7 @@ export function applyHolds(G: Game) {
   const f = G.S.flags, npc = (id: string) => G.npcs.find((n) => n.def.id === id)!;
   const P = G.places;
   for (const n of G.npcs) n.hold = null;
-  if (C.qStep(G, 'mq1') >= -1 && !C.qDone(G, 'mq1')) npc('gus').hold = { x: P.hq_door.x, z: P.hq_door.z, dir: 0 };
+  if (C.qStep(G, 'mq1') >= -1 && !C.qDone(G, 'mq1')) { const g = npc('gus'); g.hold = { x: P.hq_door.x, z: P.hq_door.z, dir: 0 }; g.pos.set(P.hq_door.x, 0, P.hq_door.z); }
   if (C.qActive(G, 'mq8') && !f.ending) {
     const spots: Record<string, number[]> = { vale: [34, -9.8], nell: [31, -7.6], gus: [36.5, -7.4], mabel: [33, -6.8], rosa: [38, -7.9], silas: [29.4, -6.6], dev: [35.2, -6.2], tom: [39.6, -6.6], ines: [31.6, -5.8], hattie: [37.4, -5.9] };
     for (const id in spots) npc(id).hold = { x: spots[id][0], z: spots[id][1], dir: id === 'vale' ? 0 : 3 };

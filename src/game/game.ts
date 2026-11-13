@@ -5,7 +5,7 @@ import { Input } from '../engine/input';
 import { Physics } from '../engine/physics';
 import { Sound } from '../engine/audio';
 import { Fx } from '../engine/fx';
-import { Kit } from '../world/kit';
+import { Kit, uCut, uCutScr } from '../world/kit';
 import { Sky } from '../world/sky';
 import { Town } from '../world/town';
 import { Task, Work, ToolId, PaintTask } from './work';
@@ -76,6 +76,7 @@ export class Game {
     this.skid = new Vehicle(this, 'skid');
     for (const d of C.NPCS) this.npcs.push(new Npc(this, d));
     this.critters = new Critters(this);
+    this.player.teleport(this.S.pos.x, this.S.pos.z); this.truck.place(this.S.truck.x, this.S.truck.z, 0); this.skid.place(this.S.skid.x, this.S.skid.z, 0); this.skid.group.visible = false;
     this.addInteract({ id: 'truck', x: 0, z: 0, r: 2.6, label: 'Drive the truck', when: () => !this.player.driving && this.nearVehicle(this.truck), act: () => this.player.enter(this.truck) });
     this.addInteract({ id: 'skid', x: 0, z: 0, r: 2.4, label: 'Operate the skid steer', when: () => !this.player.driving && this.S.tools.skid && this.nearVehicle(this.skid), act: () => { if (this.skillLv('engineering') < 2) this.toast('You need Engineering Lv 2 to run heavy equipment.', 'warn'); else this.player.enter(this.skid); } });
     window.addEventListener('beforeunload', () => { if (this.running) this.save(true); });
@@ -145,7 +146,7 @@ export class Game {
     for (const id in this.town.restorables) this.town.setRestored(id, !!this.S.props[id]?.restored || !!f['restored_' + id]);
     this.town.festival.visible = !!f.festival;
     const lit = !!f.lit;
-    sf.lighthouse.lampM.emissiveIntensity = lit ? 3 : 0; sf.lighthouse.beam.userData.lit = lit; sf.lighthouse.glow.visible = lit;
+    sf.lighthouse.lampM.emissiveIntensity = lit ? 1.6 : 0; sf.lighthouse.beam.userData.lit = lit; sf.lighthouse.glow.visible = lit;
     this.kit.lamps.forEach((l) => { if (l.broken && f.lamps_fixed) l.broken = false; });
     this.skid.group.visible = !!this.S.tools.skid;
     this.truck.refresh();
@@ -213,7 +214,7 @@ export class Game {
   }
 
   // ───────────── cinematics ─────────────
-  playCine(shots: C.Shot[], done?: () => void) { this.cine = { t: 0, shots, i: 0, done }; this.input.enabled = false; this.ui.showHud(false); this.ui.caption(shots[0].text ?? ''); }
+  playCine(shots: C.Shot[], done?: () => void) { uCut.value.w = 0; this.cine = { t: 0, shots, i: 0, done }; this.input.enabled = false; this.ui.showHud(false); this.ui.caption(shots[0].text ?? ''); }
   private updateCine(dt: number) {
     const c = this.cine!;
     const s = c.shots[c.i];
@@ -225,7 +226,7 @@ export class Game {
     const skip = this.input.rawHit('Space', 'Enter', 'Escape') || this.input.mouse.clicked;
     if (c.t >= s.dur || skip) {
       c.i++; c.t = 0;
-      if (c.i >= c.shots.length) { this.cine = null; this.gfx.cine = null; this.input.enabled = true; this.ui.caption(''); this.ui.showHud(true); this.gfx.goal.copy(this.player.pos); this.gfx.snap(); c.done?.(); }
+      if (c.i >= c.shots.length) { this.cine = null; this.gfx.cine = null; uCut.value.w = 0; this.input.enabled = true; this.ui.caption(''); this.ui.showHud(true); this.gfx.goal.copy(this.player.pos); this.gfx.snap(); c.done?.(); }
       else { this.ui.caption(c.shots[c.i].text ?? ''); c.shots[c.i].on?.(this); }
     }
   }
@@ -281,19 +282,21 @@ export class Game {
 
   private updateCamera(dt: number) {
     const g = this.gfx, p = this.player, I = this.input;
-    if (!this.ui.blocking && I.mouse.wheel) p.zoom = Math.max(15, Math.min(36, p.zoom + I.mouse.wheel * 2.5));
+    if (!this.ui.blocking && I.mouse.wheel) p.zoom = Math.max(16, Math.min(42, p.zoom + I.mouse.wheel * 2.5));
     const v = p.driving;
     const inside = this.kit.interiors.find((i) => i.inside);
     g.goal.set(p.pos.x + (v ? Math.cos(v.rot) * v.speed * 0.45 : 0), p.pos.y, p.pos.z + (v ? -Math.sin(v.rot) * v.speed * 0.45 : 0) - (inside ? 0 : 1.2));
     g.goalDist = inside ? 15 : v ? p.zoom + 9 : this.ui.inDialogue ? p.zoom - 6 : p.zoom;
-    g.goalPitch = inside ? 0.78 : 0.6;
+    g.goalPitch = inside ? 0.78 : 0.56;
     // interiors: lift roof + front wall when the player steps in
     for (const it of this.kit.interiors) {
       const inNow = !v && p.pos.x > it.x0 + 0.1 && p.pos.x < it.x1 - 0.1 && p.pos.z > it.z0 && p.pos.z < it.z1 - 0.05;
       if (inNow !== !!it.inside) { it.inside = inNow; it.hide.forEach((o) => (o.visible = !inNow)); if (inNow) this.snd.sfx('door'); }
-      if (it.light) it.light.intensity += ((inNow ? 34 : 0) - it.light.intensity) * Math.min(1, dt * 6);
+      if (it.light) it.light.intensity += ((inNow ? 22 : 0) - it.light.intensity) * Math.min(1, dt * 6);
     }
-    void dt;
+    const sp = p.pos.clone().setY(p.pos.y + 1).project(g.camera), sz = g.renderer.getDrawingBufferSize(new THREE.Vector2());
+    uCut.value.set(p.pos.x, p.pos.y, p.pos.z, inside || this.cine ? 0 : 1);
+    uCutScr.value.set((sp.x * 0.5 + 0.5) * sz.x, (sp.y * 0.5 + 0.5) * sz.y, sz.y * (v ? 0.2 : 0.13));
   }
   private updateAudio() {
     const p = this.player.pos, w = this.sky.forceWeather ?? this.sky.weather;

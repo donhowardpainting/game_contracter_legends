@@ -76,7 +76,7 @@ export const SHOP: Record<string, ShopItem[]> = {
     { id: 'concrete', name: 'Concrete (bag)', icon: 'concrete', price: 15, desc: 'For piles and footings.', kind: 'mat', qty: 1 },
   ],
   tools: [
-    { id: 'roller', name: 'Paint Roller', icon: 'roller', price: 55, desc: 'Covers a wall many times faster than a brush.', kind: 'tool' },
+    { id: 'roller', name: '18-inch Roller', icon: 'roller', price: 75, desc: 'Half again as wide as Walt\'s old roller. Walls go fast.', kind: 'tool' },
     { id: 'washer', name: 'Pressure Washer', icon: 'washer', price: 180, desc: "Strips grime so paint will actually stick.", kind: 'tool' },
     { id: 'nailgun', name: 'Nail Gun', icon: 'nailgun', price: 220, desc: 'One trigger pull per nail. Hold to rapid-fire.', kind: 'tool', req: ['carpentry', 2] },
     { id: 'heavySledge', name: 'Heavy Sledge', icon: 'sledge', price: 150, desc: 'Twice the hit. Twice the satisfaction.', kind: 'tool', req: ['demolition', 2] },
@@ -101,7 +101,7 @@ export function buy(G: Game, it: ShopItem): boolean {
   G.snd.sfx('coin');
   if (it.kind === 'tool') {
     S.tools[it.id] = true;
-    if (it.id === 'roller') S.tools.paint = true;
+    
     if (it.id === 'tuneup') G.truck.maxSpeed = 16.5;
     if (it.id === 'skid') { G.skid.group.visible = true; G.toast('The skid steer is waiting in the lumberyard.', 'good'); }
     G.player.refreshLook();
@@ -124,7 +124,7 @@ export const QUESTS: QuestDef[] = [
   { id: 'mq1', main: true, title: 'A Roof Over Your Head', desc: "Uncle Walt's shop is yours now — such as it is.", steps: [
     { text: 'Talk to Gus Brannigan outside the shop', at: 'hq_door' },
     { text: 'Equip the hammer [2] — set the boards, then drive the glowing nails', tasks: ['hq_rack'], until: T('hq_rack') },
-    { text: 'Equip the brush [3], choose a colour [C] and paint the shop front', tasks: ['hq_paint'], until: T('hq_paint') },
+    { text: 'Equip the roller [3], choose a colour [C], then hold the mouse and roll paint onto the shop front', tasks: ['hq_paint'], until: T('hq_paint') },
     { text: 'Show Gus your work', at: 'hq_door' } ] },
   { id: 'mq2', main: true, title: 'First Client', desc: "Mabel Okafor's porch on Bay Road has been waiting fifteen years for a carpenter.", steps: [
     { text: 'Visit Mabel Okafor at the yellow house on Bay Road', at: 'mabel_porch' },
@@ -266,13 +266,13 @@ export function onTaskDone(G: Game, t: Task) {
 export interface Offer { id: string; title: string; client: string; desc: string; tasks: string[]; pay: number; skill: Skill; needs: string; tier: number; haggled?: number }
 const POOL: Offer[] = [
   { id: 'c_fence', title: 'Bay Road Fence', client: 'mabel', desc: "The neighbourhood fence along Bay Road blew down in the last nor'easter.", tasks: ['c_fence'], pay: 150, skill: 'carpentry', needs: '6 boards, 12 nails', tier: 0 },
-  { id: 'c_walk', title: 'Boardwalk Stain', client: 'rosa', desc: 'Salt has stripped the boardwalk by the diner. A fresh coat of stain before the season.', tasks: ['c_walk'], pay: 170, skill: 'painting', needs: '~3 gallons of paint', tier: 0 },
+  { id: 'c_walk', title: 'Boardwalk Stain', client: 'rosa', desc: 'Salt has stripped the boardwalk by the diner. A fresh coat of stain before the season.', tasks: ['c_walk'], pay: 170, skill: 'painting', needs: '~2 gallons of paint', tier: 0 },
   { id: 'c_shed', title: 'Garden Shed Rebuild', client: 'ines', desc: 'The community garden shed is a hazard. Tear it down and frame a new one.', tasks: ['c_shed_demo', 'c_shed_build'], pay: 260, skill: 'demolition', needs: 'Sledge · 7 boards', tier: 0 },
-  { id: 'c_patel', title: 'Patel Electric Facelift', client: 'dev', desc: "Dev's shopfront needs washing and a confident new colour.", tasks: ['c_patel'], pay: 230, skill: 'painting', needs: 'Pressure washer · ~4 gallons', tier: 1 },
-  { id: 'c_hall', title: 'Town Hall Wash & Paint', client: 'vale', desc: 'The council wants the Town Hall front spotless. Paid from public funds, on time for once.', tasks: ['c_hall'], pay: 340, skill: 'painting', needs: 'Pressure washer · ~6 gallons', tier: 1 },
+  { id: 'c_patel', title: 'Patel Electric Facelift', client: 'dev', desc: "Dev's shopfront needs washing and a confident new colour.", tasks: ['c_patel'], pay: 230, skill: 'painting', needs: 'Pressure washer · ~2 gallons', tier: 1 },
+  { id: 'c_hall', title: 'Town Hall Wash & Paint', client: 'vale', desc: 'The council wants the Town Hall front spotless. Paid from public funds, on time for once.', tasks: ['c_hall'], pay: 340, skill: 'painting', needs: 'Pressure washer · ~3 gallons', tier: 1 },
   { id: 'c_rack', title: 'Lumberyard Racking', client: 'gus', desc: 'Gus needs a proper cantilever rack framed up in the yard.', tasks: ['c_rack'], pay: 280, skill: 'carpentry', needs: '9 boards, 16 nails', tier: 1 },
   { id: 'c_wreck', title: 'Beach Wreck Clearance', client: 'silas', desc: "Half a skiff washed up on Driftwood Beach. Break it up before the kids find it.", tasks: ['c_wreck'], pay: 210, skill: 'demolition', needs: 'Sledge', tier: 0 },
-  { id: 'c_gazebo', title: 'Gazebo Green Refresh', client: 'mabel', desc: 'The Garden Club wants the gazebo deck re-stained for the summer concerts.', tasks: ['c_gazebo'], pay: 190, skill: 'painting', needs: '~3 gallons of paint', tier: 0 },
+  { id: 'c_gazebo', title: 'Gazebo Green Refresh', client: 'mabel', desc: 'The Garden Club wants the gazebo deck re-stained for the summer concerts.', tasks: ['c_gazebo'], pay: 190, skill: 'painting', needs: '~1 gallon of paint', tier: 0 },
 ];
 export function rollOffers(G: Game) {
   const C = G.S.contracts, R = PX.rng(C.seed++ * 977 + G.sky.day);

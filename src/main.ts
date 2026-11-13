@@ -16,7 +16,7 @@ async function boot() {
   await new Promise((r) => setTimeout(r, 30));
   const G = new Game(document.getElementById('game') as HTMLCanvasElement);
   C.setupWorld(G);
-  (window as any).G = G;
+  (window as any).G = G; (window as any).C = C;
   G.fx.setScale(window.innerHeight);
   window.addEventListener('resize', () => G.fx.setScale(window.innerHeight));
   G.sky.time = 17.6;

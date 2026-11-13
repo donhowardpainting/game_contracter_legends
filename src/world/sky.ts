@@ -7,16 +7,16 @@ import type { Fx } from '../engine/fx';
 
 interface Key { h: number; sun: number; si: number; sky: number; gnd: number; hi: number; fog: number; tint: number; }
 const KEYS: Key[] = [
-  { h: 0, sun: 0x7f9bdc, si: 0.75, sky: 0x33448a, gnd: 0x181d38, hi: 1.25, fog: 0x18203f, tint: 0xc4cfff },
-  { h: 5, sun: 0x7f9bdc, si: 0.75, sky: 0x33448a, gnd: 0x181d38, hi: 1.25, fog: 0x18203f, tint: 0xc4cfff },
+  { h: 0, sun: 0x8fa8e6, si: 1.15, sky: 0x4a5cab, gnd: 0x262c52, hi: 1.75, fog: 0x1c2548, tint: 0xc4cfff },
+  { h: 5, sun: 0x8fa8e6, si: 1.15, sky: 0x4a5cab, gnd: 0x262c52, hi: 1.75, fog: 0x1c2548, tint: 0xc4cfff },
   { h: 6, sun: 0xff9a70, si: 0.6, sky: 0x8a86b8, gnd: 0x4a3c50, hi: 1.3, fog: 0xc99aa0, tint: 0xffe6e0 },
   { h: 7, sun: 0xffb884, si: 2.3, sky: 0xa9bfe0, gnd: 0x6a5a58, hi: 1.5, fog: 0xf0c8ac, tint: 0xfff0e4 },
   { h: 9.5, sun: 0xfff0d2, si: 3.1, sky: 0xbfdcf6, gnd: 0x74805c, hi: 1.75, fog: 0xbfe0f0, tint: 0xffffff },
   { h: 16, sun: 0xffe9c0, si: 3.1, sky: 0xbfdcf6, gnd: 0x74805c, hi: 1.75, fog: 0xc4e0ec, tint: 0xfffaf0 },
-  { h: 18.3, sun: 0xff9d58, si: 2.6, sky: 0xd8a8b4, gnd: 0x5c4a56, hi: 1.4, fog: 0xf2b48e, tint: 0xffe8d6 },
-  { h: 19.6, sun: 0xd46a70, si: 0.5, sky: 0x6a64a8, gnd: 0x2a2848, hi: 1.25, fog: 0x5a4a80, tint: 0xe6d8ff },
-  { h: 21, sun: 0x7f9bdc, si: 0.75, sky: 0x33448a, gnd: 0x181d38, hi: 1.25, fog: 0x18203f, tint: 0xc4cfff },
-  { h: 24, sun: 0x7f9bdc, si: 0.75, sky: 0x33448a, gnd: 0x181d38, hi: 1.25, fog: 0x18203f, tint: 0xc4cfff },
+  { h: 18.3, sun: 0xffb478, si: 2.3, sky: 0xe0b8c4, gnd: 0x6c5a66, hi: 1.75, fog: 0xf2b894, tint: 0xfff0e2 },
+  { h: 19.6, sun: 0xd47a80, si: 0.6, sky: 0x7a74b8, gnd: 0x343258, hi: 1.4, fog: 0x5a4a80, tint: 0xe6d8ff },
+  { h: 21, sun: 0x8fa8e6, si: 1.15, sky: 0x4a5cab, gnd: 0x262c52, hi: 1.75, fog: 0x1c2548, tint: 0xc4cfff },
+  { h: 24, sun: 0x8fa8e6, si: 1.15, sky: 0x4a5cab, gnd: 0x262c52, hi: 1.75, fog: 0x1c2548, tint: 0xc4cfff },
 ];
 export type Weather = 'clear' | 'cloudy' | 'rain' | 'fog';
 
@@ -66,12 +66,15 @@ export class Sky {
         uDeep: { value: new THREE.Color(0x2c6f96) }, uShallow: { value: new THREE.Color(0x5fb7c0) }, uLight: { value: new THREE.Color(1, 1, 1) }, uSpark: { value: 1 },
       },
       fog: true,
-      vertexShader: /* glsl */ `varying vec3 vW; #include <fog_pars_vertex>
-        void main(){ vec4 w = modelMatrix * vec4(position,1.0); vW = w.xyz; vec4 mvPosition = viewMatrix * w; gl_Position = projectionMatrix * mvPosition; #include <fog_vertex>
+      vertexShader: /* glsl */ `varying vec3 vW;
+#include <fog_pars_vertex>
+        void main(){ vec4 w = modelMatrix * vec4(position,1.0); vW = w.xyz; vec4 mvPosition = viewMatrix * w; gl_Position = projectionMatrix * mvPosition;
+#include <fog_vertex>
         }`,
       fragmentShader: /* glsl */ `
         uniform float uTime; uniform sampler2D uSdf; uniform vec2 uOrigin; uniform vec2 uSize; uniform vec3 uDeep; uniform vec3 uShallow; uniform vec3 uLight; uniform float uSpark;
-        varying vec3 vW; #include <fog_pars_fragment>
+        varying vec3 vW;
+#include <fog_pars_fragment>
         float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
           return mix(mix(hash(i), hash(i+vec2(1,0)), f.x), mix(hash(i+vec2(0,1)), hash(i+vec2(1,1)), f.x), f.y); }
@@ -93,7 +96,7 @@ export class Sky {
           float sp = step(0.994, hash(floor(vW.xz * 4.0) + floor(uTime * 5.0) * 13.0)) * uSpark;
           col = col * uLight + sp * 0.8;
           gl_FragColor = vec4(col, 1.0);
-          #include <fog_fragment>
+#include <fog_fragment>
         }`,
     });
     this.water = new THREE.Mesh(new THREE.PlaneGeometry(900, 900), m);
@@ -159,7 +162,7 @@ export class Sky {
     gu.haze.value.copy(this.fog.color);
     gu.hazeAmt.value = 0.1 + this.wAmt * 0.12;
     gu.saturation.value = 1.14 - grey * 0.22;
-    this.gfx.bloom.strength = 0.3 + this.night * 0.3;
+    this.gfx.bloom.strength = 0.28 + this.night * 0.14;
     // water colours follow the sky
     if (this.water) {
       const u = (this.water.material as THREE.ShaderMaterial).uniforms;
@@ -169,8 +172,8 @@ export class Sky {
     this.fx.ambient.copy(this.hemi.color).multiplyScalar(0.55 + 0.45 * (1 - this.night));
     // windows, lamps, glows
     const n = this.night;
-    this.kit.winMats[0].forEach((m) => (m.emissiveIntensity = n > 0.3 && (h > 12 ? h < 23.2 : false) ? 1.7 * n : 0));
-    this.kit.winMats[1].forEach((m) => (m.emissiveIntensity = n > 0.5 && (h > 12 || h < 1.2) ? 1.7 * n : 0));
+    this.kit.winMats[0].forEach((m) => (m.emissiveIntensity = n > 0.3 && (h > 12 ? h < 23.2 : false) ? 1.05 * n : 0));
+    this.kit.winMats[1].forEach((m) => (m.emissiveIntensity = n > 0.5 && (h > 12 || h < 1.2) ? 1.05 * n : 0));
     for (const l of this.kit.lamps) {
       const on = !l.broken && n > 0.25 ? n : 0;
       (l.glow.material as THREE.SpriteMaterial).opacity = on * 0.85;
@@ -193,7 +196,7 @@ export class Sky {
       (this.rain.material as THREE.LineBasicMaterial).opacity = 0.5 * wet;
     }
     // chimney smoke
-    if (Math.random() < dt * 5) for (const s of this.kit.smokers) if (Math.random() < 0.25) this.fx.one(s.x, s.y, s.z, 0.25 * uWind.value, 0.7, 0.05, '#cfcfd6', { colors: [], life: 3.2, size: 0.3, gravity: -0.12, drag: 0.1 });
+    if (Math.random() < dt * 5) for (const s of this.kit.smokers) if (Math.random() < 0.25) this.fx.one(s.x, s.y, s.z, 0.25 * uWind.value, 0.7, 0.05, '#cfcfd6', { colors: [], life: 3.2, size: 0.2, gravity: -0.12, drag: 0.1 });
   }
 }
 function lerpN(a: number, b: number, t: number) { return a + (b - a) * t; }
