@@ -2,11 +2,13 @@ import '@fontsource/silkscreen/400.css';
 import '@fontsource/pixelify-sans/400.css';
 import '@fontsource/pixelify-sans/600.css';
 import './ui/style.css';
+import { inject } from '@vercel/analytics';
 import { Physics } from './engine/physics';
 import { Game } from './game/game';
 import * as C from './game/content';
 
 async function boot() {
+  inject();
   const loading = document.createElement('div');
   loading.id = 'loading';
   loading.textContent = "RAISING HARBOR'S END…";
